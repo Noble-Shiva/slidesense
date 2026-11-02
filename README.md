@@ -1,5 +1,7 @@
 # SlideSense
 
+<img src="docs/social-preview.png" alt="SlideSense: volume and brightness on the edges of your trackpad" width="100%">
+
 **Slide the edges of your MacBook trackpad to change volume and brightness.**
 
 SlideSense is a free, MIT-licensed menu bar app for macOS 13+. The left and right
@@ -33,6 +35,22 @@ matching on-screen display, quick mute, and a media strip along the bottom edge.
 | **Menu bar only** | No Dock icon. Idle CPU is effectively zero. |
 | **Open at login** | Via `SMAppService`, no helper daemon. |
 
+## Screenshots
+
+| | |
+|---|---|
+| ![Edges settings](docs/screenshots/settings-edges.png) | ![General settings](docs/screenshots/settings-general.png) |
+| The edge bands, sensitivity and axis fix. | Permissions, HUD and startup, in one place. |
+
+| | |
+|---|---|
+| ![Volume HUD](docs/screenshots/hud-volume.png) | ![Brightness HUD](docs/screenshots/hud-brightness.png) |
+| Volume on the right edge. | Brightness on the left edge. |
+
+These are rendered straight from the app's own views at 2× by `make snapshots`
+(the glass material is drawn by the system, so it does not appear in an
+offscreen render).
+
 ## Requirements
 
 - macOS 13 Ventura or later (Liquid Glass appears on macOS 26)
@@ -42,10 +60,17 @@ matching on-screen display, quick mute, and a media strip along the bottom edge.
 
 Magic Mouse support is not implemented yet — see [Roadmap](#roadmap).
 
-## Build and run
+## Install
+
+1. Download `SlideSense-0.1.0.zip` from [Releases](https://github.com/shashvat1965/slidesense/releases).
+2. Unzip it and drag **SlideSense.app** into `/Applications`.
+3. The build is ad-hoc signed, not notarised: right-click the app → **Open** the
+   first time, or run `xattr -dr com.apple.quarantine /Applications/SlideSense.app`.
+
+Or build it yourself — it takes about ten seconds:
 
 ```bash
-git clone https://github.com/<you>/slidesense.git
+git clone https://github.com/shashvat1965/slidesense.git
 cd slidesense
 
 make app        # builds SlideSense.app in the repo root
@@ -222,8 +247,13 @@ scripts/make-icon.swift    icon generator
 
 ## Contributing
 
-Issues and pull requests are welcome. Run `make test` before sending a change,
-and keep hardware-facing code behind a protocol so it can be faked in tests.
+Issues and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for
+the setup, the test suite and the review process. Run `make test` before sending a
+change, keep hardware-facing code behind a protocol so it can be faked in tests,
+and add a snapshot when you touch the UI.
+
+Security issues: please email rather than opening a public issue, see
+[SECURITY.md](SECURITY.md).
 
 ## Licence
 

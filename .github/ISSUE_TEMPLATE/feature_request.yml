@@ -1,0 +1,28 @@
+name: Feature request
+description: Suggest a gesture, a setting or a way to improve the app
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: Describe the workflow, not the solution.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like to happen?
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you have tried
+      description: Other apps, BetterTouchTool bindings, keyboard shortcuts…
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Scope check
+      options:
+        - label: This works without network access or telemetry.
+          required: true
+        - label: This keeps the menu bar menu minimal (settings go in the Settings window).

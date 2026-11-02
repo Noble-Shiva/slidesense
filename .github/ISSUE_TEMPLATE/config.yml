@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security issue
+    url: https://github.com/shashvat1965/slidesense/blob/main/SECURITY.md
+    about: Please report vulnerabilities privately by email, not in a public issue.

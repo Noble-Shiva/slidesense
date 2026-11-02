@@ -1,0 +1,52 @@
+name: Release
+
+# Manual: pick "Run workflow", type the version (must match VERSION), and it
+# builds the app, zips it and publishes a GitHub release from that tag.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release, without the leading v (e.g. 0.1.0)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the version matches VERSION
+        run: |
+          file_version="$(cat VERSION)"
+          if [ "$file_version" != "${{ inputs.version }}" ]; then
+            echo "VERSION says $file_version but you asked for ${{ inputs.version }}" >&2
+            exit 1
+          fi
+
+      - name: Build the app bundle
+        run: make app
+
+      - name: Zip it
+        run: ditto -c -k --sequesterRsrc --keepParent SlideSense.app "SlideSense-${{ inputs.version }}.zip"
+
+      - name: Publish
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ inputs.version }}"
+          name: "SlideSense ${{ inputs.version }}"
+          files: "SlideSense-${{ inputs.version }}.zip"
+          generate_release_notes: true
+          body: |
+            Download `SlideSense-${{ inputs.version }}.zip`, unzip it, and drag
+            **SlideSense.app** into `/Applications`.
+
+            The build is ad-hoc signed and not notarised, so the first launch
+            needs right-click -> **Open** (or:
+
+            ```sh
+            xattr -dr com.apple.quarantine /Applications/SlideSense.app
+            ```
+            )

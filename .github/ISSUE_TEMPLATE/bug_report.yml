@@ -1,0 +1,54 @@
+name: Bug report
+description: Something in SlideSense does not work as described
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. The output of `swift run SlideSense --diagnose`
+        covers most of what is needed to reproduce a gesture or brightness
+        problem.
+  - type: input
+    id: version
+    attributes:
+      label: SlideSense version
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version and Mac model
+      placeholder: "macOS 26.1, MacBook Pro 14-inch (M4)"
+    validations:
+      required: true
+  - type: textarea
+    id: diagnose
+    attributes:
+      label: Output of `swift run SlideSense --diagnose`
+      render: text
+      placeholder: |
+        SlideSense 0.1.0 (0.1.0)
+        macOS Version 26.1 ...
+        MultitouchSupport framework : available
+        ...
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Slide up on the left edge
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: Raw contacts from `--dump-touches`, a screenshot, settings changed from defaults.
