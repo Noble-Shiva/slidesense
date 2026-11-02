@@ -94,6 +94,19 @@ final class HUDView: NSView {
     // MARK: - Lifecycle
 
     override init(frame frameRect: NSRect) {
+        backgroundView = HUDView.makeBackground()
+        super.init(frame: frameRect)
+        setUp()
+    }
+
+    /// Liquid Glass on macOS 26, frosted material everywhere else.
+    ///
+    /// `NSGlassEffectView` only exists in the macOS 26 SDK, so the typed code
+    /// is compiled out when building with an older toolchain (CI, or anyone on
+    /// Xcode 16). Such a build still works on every OS — it just uses the
+    /// frosted fallback on macOS 26 as well.
+    private static func makeBackground() -> NSView {
+        #if compiler(>=6.2)
         if #available(macOS 26.0, *) {
             let glass = NSGlassEffectView()
             // `NSGlassEffectView` exposes a plain `cornerRadius` (no
@@ -101,22 +114,20 @@ final class HUDView: NSView {
             glass.cornerRadius = HUDMetrics.cornerRadius
             glass.style = .regular
             // No tint: the default glass is the system OSD look.
-            backgroundView = glass
-        } else {
-            let effect = NSVisualEffectView()
-            effect.material = .hudWindow
-            effect.blendingMode = .behindWindow
-            effect.state = .active
-            effect.isEmphasized = true
-            effect.wantsLayer = true
-            effect.layer?.cornerRadius = HUDMetrics.cornerRadius
-            effect.layer?.cornerCurve = .continuous
-            effect.layer?.masksToBounds = true
-            backgroundView = effect
+            return glass
         }
+        #endif
 
-        super.init(frame: frameRect)
-        setUp()
+        let effect = NSVisualEffectView()
+        effect.material = .hudWindow
+        effect.blendingMode = .behindWindow
+        effect.state = .active
+        effect.isEmphasized = true
+        effect.wantsLayer = true
+        effect.layer?.cornerRadius = HUDMetrics.cornerRadius
+        effect.layer?.cornerCurve = .continuous
+        effect.layer?.masksToBounds = true
+        return effect
     }
 
     @available(*, unavailable)
@@ -131,11 +142,16 @@ final class HUDView: NSView {
 
         overlay.wantsLayer = true
 
+        var contentLivesInBackground = false
+        #if compiler(>=6.2)
         if #available(macOS 26.0, *), let glass = backgroundView as? NSGlassEffectView {
             // The content lives *inside* the glass, so it picks up the
             // material's rendering rather than floating above it.
             glass.contentView = overlay
-        } else {
+            contentLivesInBackground = true
+        }
+        #endif
+        if !contentLivesInBackground {
             addSubview(overlay)
         }
 
@@ -385,9 +401,11 @@ final class HUDView: NSView {
     /// Swaps the material for a flat opaque plate so a headless render shows
     /// the HUD's real content instead of an empty blur. Test support only.
     func replaceBackgroundForSnapshot(color: NSColor) {
+        #if compiler(>=6.2)
         if #available(macOS 26.0, *), let glass = backgroundView as? NSGlassEffectView {
             glass.contentView = nil
         }
+        #endif
         backgroundView.removeFromSuperview()
 
         if overlay.superview !== self {
