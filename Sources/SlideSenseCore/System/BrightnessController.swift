@@ -12,7 +12,6 @@ public final class BrightnessController: LevelController {
 
     private typealias GetBrightnessFn = @convention(c) (CGDirectDisplayID, UnsafeMutablePointer<Float>) -> Int32
     private typealias SetBrightnessFn = @convention(c) (CGDirectDisplayID, Float) -> Int32
-
     private var getBrightness: GetBrightnessFn?
     private var setBrightness: SetBrightnessFn?
     private var display: CGDirectDisplayID

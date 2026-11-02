@@ -30,6 +30,13 @@ public final class StatusItemController {
     /// The installed menu, exposed for tests and snapshot tooling.
     var menu: NSMenu? { statusItem?.menu }
 
+    /// Called just before the menu is displayed, so the app can refresh the
+    /// live readouts without a timer running in the background.
+    public var willOpen: (() -> Void)? {
+        get { menuDelegate.onWillOpen }
+        set { menuDelegate.onWillOpen = newValue }
+    }
+
     // MARK: - Status item artwork
 
     /// 18×18 template artwork: a thin trackpad outline with a short bar
@@ -243,7 +250,10 @@ public final class StatusItemController {
 /// Strips the SF Symbol gear that macOS attaches to items with standard
 /// titles such as "Settings…", keeping the menu plain text.
 private final class PlainTextMenuDelegate: NSObject, NSMenuDelegate {
+    var onWillOpen: (() -> Void)?
+
     func menuWillOpen(_ menu: NSMenu) {
+        onWillOpen?()
         for item in menu.items where item.image != nil {
             item.image = nil
         }

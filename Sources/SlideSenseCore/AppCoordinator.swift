@@ -17,8 +17,8 @@ public final class AppCoordinator: NSObject, StatusItemDataSource {
     private let snapshotLock = NSLock()
     private var snapshot = EngineConfiguration()
 
-    private var pollTimer: Timer?
     private var observers: [NSObjectProtocol] = []
+    private var lastTouchRefresh: TimeInterval = 0
     private var frozen = false
     private var freezeCursorEnabled = true
     private var hapticsEnabled = true
@@ -77,10 +77,20 @@ public final class AppCoordinator: NSObject, StatusItemDataSource {
         lastLoginItemPreference = store.settings.openAtLogin
         LoginItem.sync(store.settings.openAtLogin)
 
-        pollTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            self?.poll()
-        }
-        pollTimer?.tolerance = 0.3
+        audio.onChange = { [weak self] in self?.levelsDidChange() }
+        audio.startObserving()
+
+        statusItem.willOpen = { [weak self] in self?.refreshLevelsNow() }
+
+        observers.append(
+            NotificationCenter.default.addObserver(
+                forName: NSApplication.didBecomeActiveNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                self?.settingsWindow?.refreshPermissionState()
+            }
+        )
 
         if !AccessibilityPermission.isTrusted {
             AccessibilityPermission.requestIfNeeded()
@@ -92,8 +102,9 @@ public final class AppCoordinator: NSObject, StatusItemDataSource {
     }
 
     public func stop() {
-        pollTimer?.invalidate()
-        pollTimer = nil
+        audio.onChange = nil
+        audio.stopObserving()
+        statusItem?.willOpen = nil
         monitor.stop()
         engine.reset()
         freezer.end()
@@ -104,6 +115,17 @@ public final class AppCoordinator: NSObject, StatusItemDataSource {
     // MARK: - Touch pipeline
 
     private func handle(_ frame: TouchFrame) {
+        // A slide starts from the live system level. Levels are cached and kept
+        // fresh by the CoreAudio/DisplayServices callbacks, but re-read once when
+        // a finger lands so a change made without a notification cannot make the
+        // slide jump. Nothing here runs while the pad is untouched.
+        if !engine.isTrackingSlide, frame.activeContacts.count == 1,
+           frame.timestamp - lastTouchRefresh > 0.25 {
+            lastTouchRefresh = frame.timestamp
+            brightness.refresh()
+            refreshSnapshot()
+        }
+
         engine.process(frame)
 
         if engine.isTrackingSlide {
@@ -183,12 +205,18 @@ public final class AppCoordinator: NSObject, StatusItemDataSource {
         statusItem?.refresh()
     }
 
-    private func poll() {
+    /// CoreAudio or DisplayServices reported a change (including our own).
+    private func levelsDidChange() {
+        refreshSnapshot()
+        statusItem?.refresh()
+    }
+
+    /// Called just before the menu is displayed, so the readouts are exact.
+    private func refreshLevelsNow() {
         audio.refresh()
         brightness.refresh()
         refreshSnapshot()
         statusItem?.refresh()
-        settingsWindow?.refreshPermissionState()
     }
 
     // MARK: - StatusItemDataSource
@@ -200,6 +228,7 @@ public final class AppCoordinator: NSObject, StatusItemDataSource {
 
     public func requestSettings() {
         settingsWindow.show()
+        settingsWindow.refreshPermissionState()
     }
 
     public func requestAccessibility() {

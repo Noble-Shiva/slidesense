@@ -4,7 +4,14 @@ All notable changes to SlideSense are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.1] — 2026-11-02
+
+### Changed
+- The 1 Hz refresh timer is gone. Volume and mute now arrive as CoreAudio
+  property callbacks, and brightness is read when a finger lands and when the
+  menu opens. The app no longer wakes up while the pad is untouched.
+  (`AppCoordinator` had a timer behind a README that promised "no polling" —
+  that was a fair catch, and the code now matches the claim.)
 
 ### Planned
 - Magic Mouse top-edge support
@@ -38,5 +45,6 @@ The first public release.
   with a key-event fallback, media commands are posted as system key events.
 - Builds are unsigned; downloaded copies need one right-click → Open.
 
-[Unreleased]: https://github.com/shashvat1965/slidesense/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/shashvat1965/slidesense/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/shashvat1965/slidesense/releases/tag/v0.1.1
 [0.1.0]: https://github.com/shashvat1965/slidesense/releases/tag/v0.1.0

@@ -155,8 +155,9 @@ Three small pieces, no background daemon, no kernel extension:
    multitouch driver, is loaded with `dlopen`. Its contact-frame callback gives
    normalised finger positions (0…1, origin bottom-left) at the hardware frame
    rate. This is the same API used by many open-source trackpad utilities and is
-   why SlideSense needs no event tap, no polling, and no CPU when nothing is
-   touching the pad.
+   why SlideSense needs no event tap, no polling and no timer: frames arrive from
+   the driver, and when nothing touches the pad the process is asleep. Idle CPU
+   measures 0.0 %.
 
 2. **Deciding what a gesture means** — `SlideEngine` is a pure state machine: it
    takes frames of contacts and emits `beginSlide` / `updateSlide` / `endSlide` /
@@ -171,6 +172,10 @@ Three small pieces, no background daemon, no kernel extension:
    framework the brightness keys use; if it is unavailable SlideSense falls back
    to posting brightness key events. Media commands are posted as system-defined
    key events (`NX_KEYTYPE_PLAY`, etc. via `CGEvent.post`).
+
+   Nothing polls for changes. Volume and mute updates arrive as CoreAudio
+   property callbacks; brightness is read once when a finger lands and again when
+   the menu opens, which is the only moment the readout is visible.
 
 Private frameworks are, by definition, not guaranteed to keep working across
 macOS releases. `MultitouchSupport` and `DisplayServices` have been stable for

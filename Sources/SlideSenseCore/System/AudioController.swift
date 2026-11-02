@@ -15,6 +15,20 @@ public final class AudioController: LevelController {
     private var cachedLevel: Double = 0.5
     private var cachedMuted = false
 
+    /// Called on the main queue whenever the system volume, mute state or
+    /// default output device changes. There is no timer behind this: CoreAudio
+    /// pushes the notification.
+    public var onChange: (() -> Void)?
+
+    private struct Listener {
+        let object: AudioObjectID
+        let address: AudioObjectPropertyAddress
+        let block: AudioObjectPropertyListenerBlock
+    }
+
+    private var systemListeners: [Listener] = []
+    private var deviceListeners: [Listener] = []
+
     public init() {
         refresh()
     }
@@ -37,6 +51,81 @@ public final class AudioController: LevelController {
         if let muted = readMute(device: device) {
             cachedMuted = muted
         }
+    }
+
+    // MARK: - Observation
+
+    /// Starts event-driven observation. Cheap when idle: no polling, no timer.
+    public func startObserving() {
+        guard systemListeners.isEmpty, deviceListeners.isEmpty else { return }
+
+        addSystemListener(selector: kAudioHardwarePropertyDefaultOutputDevice)
+        registerDeviceListeners()
+    }
+
+    public func stopObserving() {
+        remove(systemListeners)
+        remove(deviceListeners)
+        systemListeners.removeAll()
+        deviceListeners.removeAll()
+    }
+
+    private func addSystemListener(selector: AudioObjectPropertySelector) {
+        addListener(
+            on: AudioObjectID(kAudioObjectSystemObject),
+            selector: selector,
+            scope: kAudioObjectPropertyScopeGlobal,
+            element: kAudioObjectPropertyElementMain,
+            into: &systemListeners
+        )
+    }
+
+    private func registerDeviceListeners() {
+        let device = currentDevice()
+        guard device != 0 else { return }
+        addListener(on: device, selector: kAudioDevicePropertyVolumeScalar, scope: kAudioObjectPropertyScopeOutput, element: kAudioObjectPropertyElementMain, into: &deviceListeners)
+        addListener(on: device, selector: kAudioDevicePropertyMute, scope: kAudioObjectPropertyScopeOutput, element: kAudioObjectPropertyElementMain, into: &deviceListeners)
+        for element in [AudioObjectPropertyElement(1), AudioObjectPropertyElement(2)] {
+            addListener(on: device, selector: kAudioDevicePropertyVolumeScalar, scope: kAudioObjectPropertyScopeOutput, element: element, into: &deviceListeners)
+        }
+    }
+
+    private func addListener(
+        on object: AudioObjectID,
+        selector: AudioObjectPropertySelector,
+        scope: AudioObjectPropertyScope,
+        element: AudioObjectPropertyElement,
+        into list: inout [Listener]
+    ) {
+        var address = AudioObjectPropertyAddress(mSelector: selector, mScope: scope, mElement: element)
+        guard AudioObjectHasProperty(object, &address) else { return }
+
+        let block: AudioObjectPropertyListenerBlock = { [weak self] _, _ in
+            self?.configurationChanged()
+        }
+        let status = AudioObjectAddPropertyListenerBlock(object, &address, DispatchQueue.main, block)
+        guard status == noErr else { return }
+        list.append(Listener(object: object, address: address, block: block))
+    }
+
+    private func remove(_ list: [Listener]) {
+        for listener in list {
+            var address = listener.address
+            AudioObjectRemovePropertyListenerBlock(listener.object, &address, DispatchQueue.main, listener.block)
+        }
+    }
+
+    private func configurationChanged() {
+        let previousDevice = cachedDevice
+        refresh()
+
+        if cachedDevice != previousDevice {
+            // The default output changed: the per-device listeners are stale.
+            remove(deviceListeners)
+            deviceListeners.removeAll()
+            registerDeviceListeners()
+        }
+        onChange?()
     }
 
     public func setLevel(_ level: Double) {
