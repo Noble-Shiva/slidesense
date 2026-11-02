@@ -28,4 +28,5 @@ acknowledgement within a few days, and credit in the release notes if you want i
 - The use of private Apple frameworks (`MultitouchSupport`, `DisplayServices`).
   They are used deliberately, feature-detected, and documented in the README; a
   macOS update breaking them is a bug report, not a vulnerability.
-- Gatekeeper warnings caused by the app being ad-hoc signed and not notarised.
+- Gatekeeper warnings. Builds are unsigned and not notarised; right-click → Open
+  the first time, or build it yourself.

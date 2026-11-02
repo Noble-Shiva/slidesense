@@ -77,11 +77,6 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 </plist>
 PLIST
 
-echo "==> Signing (ad-hoc)"
-codesign --force --sign - --timestamp=none "$APP" >/dev/null 2>&1 || {
-    echo "warning: ad-hoc codesigning failed; the app may still run" >&2
-}
-
 echo "==> Done: $APP"
 echo "    Open it with: open \"$APP\""
 echo "    Install with: make install"

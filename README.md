@@ -64,8 +64,13 @@ Magic Mouse support is not implemented yet — see [Roadmap](#roadmap).
 
 1. Download `SlideSense-0.1.0.zip` from [Releases](https://github.com/shashvat1965/slidesense/releases).
 2. Unzip it and drag **SlideSense.app** into `/Applications`.
-3. The build is ad-hoc signed, not notarised: right-click the app → **Open** the
-   first time, or run `xattr -dr com.apple.quarantine /Applications/SlideSense.app`.
+3. The build is unsigned, so the first launch needs right-click → **Open**, or:
+
+   ```sh
+   xattr -dr com.apple.quarantine /Applications/SlideSense.app
+   ```
+
+   Building it yourself with `make run` avoids this entirely.
 
 Or build it yourself — it takes about ten seconds:
 
@@ -79,9 +84,9 @@ make install    # copies it to /Applications
 make test       # runs the unit and UI-layout tests
 ```
 
-The app is ad-hoc signed (`codesign --sign -`) so it runs locally without a
-Developer ID. Because the signature changes on every rebuild, macOS may ask for
-Accessibility permission again after a rebuild — that is expected.
+The bundle is assembled but not code-signed, so it runs locally without a
+Developer ID. Because every rebuild replaces the binary, macOS may ask for
+Accessibility permission again — that is expected.
 
 On first launch macOS shows an Accessibility prompt. Approve it in
 **System Settings → Privacy & Security → Accessibility**. Without it the edge
@@ -211,7 +216,7 @@ state) and `swift run SlideSense --diagnose` prints the state of every subsystem
 | Volume works, brightness does not | Your display may not expose `DisplayServices` brightness (external monitors). SlideSense falls back to key events, which only affect the built-in panel. |
 | Sliding up decreases the level | Turn on **Flip vertical edges** in Settings → Edges. |
 | Media keys do nothing | Grant Accessibility access in Settings → General. |
-| Permission prompt keeps coming back | Ad-hoc signatures change on rebuild; re-approve, or sign with a stable certificate. |
+| Permission prompt keeps coming back | Every rebuild replaces the binary; re-approve the new copy in System Settings. |
 | Slides stop halfway | Update — 0.1.0 tolerates a dropped contact for ~120 ms. |
 | Two-finger gestures feel different | They are untouched by design; if something still feels off, disable **Media strip**, which owns the bottom band. |
 | Trackpad stops after sleep | SlideSense restarts the device 1.5 s after wake; if it persists, toggle the app off/on from the menu. |
@@ -241,7 +246,7 @@ Sources/SlideSenseCore/
   AppCoordinator.swift, AppDelegate.swift
 Sources/SlideSense/    entry point
 Tests/SlideSenseCoreTests/  geometry, gesture engine, HUD layout, settings window
-scripts/build-app.sh       assembly + ad-hoc signing
+scripts/build-app.sh       assembly of the .app bundle
 scripts/make-icon.swift    icon generator
 ```
 

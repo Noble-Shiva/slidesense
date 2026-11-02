@@ -24,9 +24,9 @@ make run             # builds SlideSense.app and opens it
 You need macOS 13 or later and a Swift 6 toolchain (Xcode 16+ is easiest). There
 are no third-party dependencies.
 
-`make app` assembles `SlideSense.app` in the repository root and ad-hoc signs it.
-Because the signature changes on every rebuild, macOS may ask for Accessibility
-again — that is expected, not a bug.
+`make app` assembles `SlideSense.app` in the repository root, unsigned. Because
+every rebuild replaces the binary, macOS may ask for Accessibility again — that
+is expected, not a bug.
 
 ## How the code is organised
 

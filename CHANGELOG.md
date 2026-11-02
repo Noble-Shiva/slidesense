@@ -36,7 +36,7 @@ The first public release.
 ### Notes
 - Volume uses CoreAudio, brightness uses the private `DisplayServices` framework
   with a key-event fallback, media commands are posted as system key events.
-- The app is ad-hoc signed; download builds need one right-click → Open.
+- Builds are unsigned; downloaded copies need one right-click → Open.
 
 [Unreleased]: https://github.com/shashvat1965/slidesense/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/shashvat1965/slidesense/releases/tag/v0.1.0
