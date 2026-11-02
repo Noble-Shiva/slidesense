@@ -21,7 +21,7 @@ test:
 
 # Renders every UI state to ./Snapshots for visual review.
 snapshots:
-	SLIDESENSE_SNAPSHOT_DIR="$(CURDIR)/Snapshots" swift test --filter "HUDLayoutTests|SettingsWindowTests"
+	SLIDESENSE_SNAPSHOT_DIR="$(CURDIR)/Snapshots" swift test --filter "HUDLayoutTests|SettingsWindowTests|StatusItemTests"
 	@echo "Snapshots written to $(CURDIR)/Snapshots"
 
 install: app

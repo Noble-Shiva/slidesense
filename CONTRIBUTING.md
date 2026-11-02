@@ -59,8 +59,8 @@ open Snapshots
 ```
 
 That renders, at 2×, the HUD in nine states (0 %, 1 %, 50 %, 100 %, muted,
-brightness and the three media glyphs, light and dark) plus all four settings
-tabs in both appearances. Review the images, then commit only what changed.
+brightness and the three media glyphs, light and dark), all four settings
+tabs in both appearances, and the menu bar icon at several levels. Review the images, then commit only what changed.
 
 There are exact layout assertions too — panel 210 × 60, bar at (48, 26, 148 × 8),
 settings content 540 × 546, every control on the same trailing edge. If you

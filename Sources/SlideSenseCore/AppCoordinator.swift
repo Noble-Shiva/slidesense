@@ -264,6 +264,7 @@ extension AppCoordinator: SlideEngineDelegate {
                 self.brightness.setLevel(level)
                 self.hud.show(edge: .brightness, level: self.brightness.level, muted: false)
             }
+            self.statusItem?.refreshIcon()
         }
     }
 

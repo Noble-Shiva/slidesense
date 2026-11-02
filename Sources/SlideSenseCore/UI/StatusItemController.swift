@@ -37,39 +37,12 @@ public final class StatusItemController {
         set { menuDelegate.onWillOpen = newValue }
     }
 
-    // MARK: - Status item artwork
+    /// The state the current button image was drawn from; the image is only
+    /// redrawn when this changes.
+    private(set) var iconState: StatusItemIconState?
 
-    /// 18×18 template artwork: a thin trackpad outline with a short bar
-    /// hugging each inner edge. Template images are tinted by the menu bar.
-    private static let enabledIcon = StatusItemController.makeIcon(alpha: 1.0)
-    private static let disabledIcon = StatusItemController.makeIcon(alpha: 0.42)
-
-    private static func makeIcon(alpha: CGFloat) -> NSImage {
-        let size = NSSize(width: 18, height: 18)
-        let image = NSImage(size: size, flipped: false) { _ in
-            let color = NSColor.black.withAlphaComponent(alpha)
-            color.setStroke()
-            color.setFill()
-
-            let outline = NSBezierPath(
-                roundedRect: NSRect(x: 3.25, y: 2.25, width: 11.5, height: 13.5),
-                xRadius: 2.75,
-                yRadius: 2.75
-            )
-            outline.lineWidth = 1.5
-            outline.stroke()
-
-            let barWidth: CGFloat = 1.5
-            let barHeight: CGFloat = 6
-            let leftBar = NSRect(x: 4.5, y: 6, width: barWidth, height: barHeight)
-            let rightBar = NSRect(x: 12, y: 6, width: barWidth, height: barHeight)
-            NSBezierPath(roundedRect: leftBar, xRadius: 0.75, yRadius: 0.75).fill()
-            NSBezierPath(roundedRect: rightBar, xRadius: 0.75, yRadius: 0.75).fill()
-            return true
-        }
-        image.isTemplate = true
-        return image
-    }
+    /// The status item's button, exposed for tests and snapshot tooling.
+    var button: NSStatusBarButton? { statusItem?.button }
 
     // MARK: - Lifecycle
 
@@ -88,38 +61,62 @@ public final class StatusItemController {
 
     // MARK: - Refresh
 
-    /// Cheap update called about once a second and after every settings change.
-    /// Never rebuilds the menu, so an open menu keeps its highlight.
+    /// Cheap update called when a level or setting changes and before the menu
+    /// opens. Never rebuilds the menu, so an open menu keeps its highlight.
     public func refresh() {
-        updateButtonAppearance()
+        refreshIcon()
         updateReadouts()
         enabledItem?.state = store.settings.enabled ? .on : .off
     }
 
-    private func updateButtonAppearance() {
+    /// Updates only the menu bar glyph. Cheap enough to call on every frame
+    /// of a slide: the image is redrawn only when a bar gains or loses a pixel.
+    public func refreshIcon() {
         guard let button = statusItem?.button else { return }
-        let enabled = store.settings.enabled
-        let icon = enabled ? Self.enabledIcon : Self.disabledIcon
-        if button.image !== icon {
-            button.image = icon
+        let settings = store.settings
+
+        let state = StatusItemIconState(
+            leftLevel: displayedLevel(for: settings.leftEdge),
+            rightLevel: displayedLevel(for: settings.rightEdge),
+            enabled: settings.enabled
+        )
+        if state != iconState || button.image == nil {
+            button.image = StatusItemIcon.image(for: state)
+            iconState = state
         }
-        button.toolTip = enabled ? "SlideSense" : "SlideSense (Off)"
+
+        button.toolTip = settings.enabled ? "SlideSense" : "SlideSense (Off)"
+        button.setAccessibilityValue("\(volumeText()), Brightness \(percent(brightnessLevel()))")
+    }
+
+    // MARK: - Levels
+
+    private func volumeLevel() -> Double { clamped(dataSource?.volumeLevel ?? 0) }
+    private func brightnessLevel() -> Double { clamped(dataSource?.brightnessLevel ?? 0) }
+    private func isMuted() -> Bool { dataSource?.isMuted ?? false }
+
+    /// The level a bar shows. A muted output reads as empty, matching the HUD.
+    private func displayedLevel(for action: EdgeAction) -> Double {
+        switch action {
+        case .volume: return isMuted() ? 0 : volumeLevel()
+        case .brightness: return brightnessLevel()
+        }
+    }
+
+    private func volumeText() -> String {
+        isMuted() ? "Volume Muted" : "Volume \(percent(volumeLevel()))"
     }
 
     // MARK: - Readouts
 
     private func updateReadouts() {
-        let volume = clamped(dataSource?.volumeLevel ?? 0)
-        let brightness = clamped(dataSource?.brightnessLevel ?? 0)
-        let muted = dataSource?.isMuted ?? false
-
         volumeItem?.attributedTitle = readout(
             label: "Volume",
-            value: muted ? "Muted" : percent(volume)
+            value: isMuted() ? "Muted" : percent(volumeLevel())
         )
         brightnessItem?.attributedTitle = readout(
             label: "Brightness",
-            value: percent(brightness)
+            value: percent(brightnessLevel())
         )
     }
 

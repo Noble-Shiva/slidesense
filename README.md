@@ -32,6 +32,7 @@ matching on-screen display, quick mute, and a media strip along the bottom edge.
 | **Quick Mute** | Double-tap the top-right corner. |
 | **Media strip** | Swipe along the bottom edge to skip; double-tap to play/pause. |
 | **Swap sides** | Brightness on the right if you prefer. |
+| **Live menu bar icon** | The icon's two edge bars show the current brightness and volume. |
 | **Menu bar only** | No Dock icon. Idle CPU is effectively zero. |
 | **Open at login** | Via `SMAppService`, no helper daemon. |
 
@@ -132,6 +133,13 @@ Quit SlideSense ⌘Q
 The two readouts are live and non-interactive. Everything else lives in
 Settings, so the menu stays a glance, not a control panel.
 
+The icon itself is a glance too: the bar along each inner edge of the little
+trackpad tracks the level that edge controls, so you can read brightness and
+volume without opening the menu. A muted output shows as a dot, and the whole
+icon dims while SlideSense is switched off. Volume changes made elsewhere show
+up straight away; brightness changed with the keys is picked up the next time a
+finger lands on the pad or the menu opens, since there is no timer polling it.
+
 ## Settings
 
 Four tabs in a standard macOS preferences window:
@@ -206,9 +214,9 @@ make snapshots       # writes PNGs of every UI state to ./Snapshots
 ```
 
 `make snapshots` renders the HUD in nine states (0 %, 1 %, 50 %, 100 %, muted,
-brightness, and three media symbols) and the settings window on all four tabs, in
-light and dark appearance, at 2× — so padding and alignment can be checked
-without a screen recording permission.
+brightness, and three media symbols), the settings window on all four tabs and
+the menu bar icon at several levels, in light and dark appearance, at 2× — so
+padding and alignment can be checked without a screen recording permission.
 
 Diagnostics: `make dump-touches` prints live contacts (`id`, `x`, `y`, touch
 state) and `swift run SlideSense --diagnose` prints the state of every subsystem.

@@ -4,6 +4,14 @@ All notable changes to SlideSense are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- The menu bar icon shows live levels: the bar on each inner edge rises and
+  falls with whatever that edge controls, follows a slide as it happens, drops
+  to a dot when the output is muted, and swaps with Swap Sides. VoiceOver reads
+  both levels from the icon.
+
 ## [0.1.1] — 2026-11-02
 
 ### Changed
