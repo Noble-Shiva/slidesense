@@ -142,7 +142,7 @@ struct SettingsTabContent: View {
                     }
                     .labelsHidden()
                     .pickerStyle(.menu)
-                    .frame(width: 180)
+                    .fixedSize()
                 }
             } header: {
                 Text("Sensitivity")
@@ -185,7 +185,7 @@ struct SettingsTabContent: View {
                     }
                     .labelsHidden()
                     .pickerStyle(.menu)
-                    .frame(width: 180)
+                    .fixedSize()
                     .disabled(!store.settings.hapticsEnabled)
                 }
             } header: {
@@ -273,7 +273,7 @@ struct SettingsTabContent: View {
                     }
                     .labelsHidden()
                     .pickerStyle(.menu)
-                    .frame(width: 180)
+                    .fixedSize()
                 }
             } header: {
                 Text("HUD")
@@ -335,7 +335,7 @@ struct SettingsTabContent: View {
         }
         .labelsHidden()
         .pickerStyle(.menu)
-        .frame(width: 180)
+        .fixedSize()
     }
 
     private func slider(
